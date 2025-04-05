@@ -1,0 +1,21 @@
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Python local server
+__pycache__/
+
+# Node modules (if you ever add them)
+node_modules/
+
+# Temp files
+*.tmp 

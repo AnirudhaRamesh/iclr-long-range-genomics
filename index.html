@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leveraging State Space Models in Long Range Genomics</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap">
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/academicons@1.9.2/css/academicons.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="Leveraging State Space Models in Long Range Genomics - An ICLR 2025 Workshop Paper exploring the use of SSMs for genomic sequence modeling">
+</head>
+<body>
+    <main>
+        <!-- Title Section -->
+        <section class="title-section">
+            <div class="container">
+                <h1>Leveraging State Space Models in Long Range Genomics</h1>
+                
+                <div class="authors">
+                    <div class="author-list">
+                        <span><a href="https://www.linkedin.com/in/matvezy/?locale=en_US" target="_blank">Matvei Popov</a><sup>*</sup></span>
+                        <span><a href="https://www.linkedin.com/in/aymenkallala/" target="_blank">Aymen Kallala</a><sup>*</sup></span>
+                        <span><a href="https://scholar.google.com/citations?user=_xTXoTQAAAAJ&hl=en" target="_blank">Anirudha Ramesh</a><sup>*†</sup></span>
+                        <span><a href="https://www.linkedin.com/in/narimane-hennouni-380900194/" target="_blank">Narimane Hennouni</a></span>
+                        <span><a href="https://scholar.google.com/citations?user=v-47-BIAAAAJ&hl=en" target="_blank">Shivesh Khaitan</a></span>
+                        <span><a href="https://www.linkedin.com/in/rick-gentry-72995068/" target="_blank">Rick Gentry</a></span>
+                        <span><a href="https://scholar.google.com/citations?user=-L5865IAAAAJ&hl=en" target="_blank">Alain-Sam Cohen</a></span>
+                    </div>
+                    
+                    <div class="affiliations">
+                        <!-- <div><sup>1</sup> <a href="https://instadeep.com/" target="_blank">InstaDeep</a></div> -->
+                        <div><sup>*</sup> Equal contribution &nbsp; &nbsp; <sup>†</sup> Corresponding author: a.ramesh@instadeep.com</div>
+                    </div>
+                </div>
+                
+                <div class="links">
+                    <a href="lmrl2025_workshop.pdf" class="btn" target="_blank">
+                        <i class="fa-solid fa-file-pdf"></i> arXiv
+                    </a>
+                    <!-- <a href="#" class="btn">
+                        <i class="fa-brands fa-github"></i> GitHub
+                    </a> -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Abstract -->
+        <section id="abstract">
+            <div class="container">
+                <h2>Abstract</h2>
+                <p>Long-range dependencies are critical for understanding genomic structure and function, yet most conventional methods struggle with them. Widely adopted transformer-based models, while excelling at short-context tasks, are limited by the attention module's quadratic computational complexity and inability to extrapolate to sequences longer than those seen in training. In this work, we explore <a href="https://github.com/state-spaces/mamba" target="_blank" class="citation-link">State-Space Models (SSMs)</a> as a promising alternative by benchmarking two SSM inspired architectures, <a href="https://caduceus-dna.github.io" target="_blank" class="citation-link">Caduceus</a> and <a href="https://arxiv.org/abs/2402.19427" target="_blank" class="citation-link">Hawk</a>, on long-range genomics modeling tasks under conditions parallel to a 50M-parameter transformer baseline. We discover that SSMs match transformer performance and exhibit impressive zero-shot extrapolation across multiple tasks, handling contexts 10–100× longer than those seen during training, indicating more generalizable representations better suited for modeling the long and complex human genome. Moreover, we demonstrate that these models can efficiently process sequences of 1M tokens on a single GPU, allowing for modeling entire genomic regions at once, even in labs with limited compute. Our findings establish SSMs as efficient and scalable for long-context genomic analysis.</p>
+            </div>
+        </section>
+        
+        <!-- Introduction -->
+        <section id="introduction">
+            <div class="container">
+                <h2>Introduction</h2>
+                <p>Genomes are the fundamental blueprint of life. Advances in DNA sequencing have rapidly lowered costs, enabling the curation of high-quality genomic datasets and opening new avenues to understand complex biological processes. Yet, a critical challenge remains in modeling the long-range interactions inherent to genomic data, which can span billions of base pairs (e.g. ≈3 billion in the human genome).</p>
+                
+                <p>A single human chromosome can span hundreds of millions of nucleotides, with regulatory elements often residing hundreds of kilobases or more from their target genes. Subtle variations, such as single-nucleotide polymorphisms (SNPs), can disrupt these regulatory landscapes by changing enhancer or promoter activity, sometimes resulting in substantial phenotypic effects. As these elements and variations are interspersed throughout massive stretches of DNA, any method that cannot maintain full sequence context while also distinguishing base-level changes risks missing critical genomic signals.</p>
+                
+                <div class="highlight-box">
+                    <h3>Our contributions</h3>
+                    <ul>
+                        <li>SSM-based models achieve performance on par with attention-based models on a wide range of DNA modeling tasks.</li>
+                        <li>SSMs zero-shot extrapolate to much longer contexts (10-100x) without additional finetuning, suffering minimal performance loss, with trends suggesting possible extrapolation to even longer contexts.</li>
+                        <li>We demonstrate scalability to 1Mbp+ sequences at single nucleotide-level on just one GPU, laying the groundwork for future large-scale genomic modeling.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Experiments -->
+        <section id="experiments">
+            <div class="container">
+                <h2>Experiments</h2>
+                
+                <h3>Model Architectures</h3>
+                <p>We consider three classes of models, each with 50M parameters for a fair comparison:</p>
+                <ul>
+                    <li><strong>NTv2:</strong> Our baseline is a smaller-variant of the <a href="https://www.instadeep.com/2024/12/decoding-our-genome-with-nucleotide-transformers/" target="_blank" class="citation-link">Nucleotide Transformer</a> model, which is the current SOTA model on <a href="https://huggingface.co/datasets/InstaDeepAI/genomics-long-range-benchmark" target="_blank" class="citation-link">GLRB</a>.</li>
+                    <li><strong>Caduceus:</strong> <a href="https://caduceus-dna.github.io" target="_blank" class="citation-link">Caduceus</a> is the first successful application of an SSM to genomic tasks. It extends <a href="https://arxiv.org/abs/2312.00752" target="_blank" class="citation-link">Mamba</a> layers with bi-directionality and reverse-complement (RC) equivariance, showing promising genomics modeling results.</li>
+                    <li><strong>Hawk:</strong> <a href="https://arxiv.org/abs/2402.19427" target="_blank" class="citation-link">Hawk</a> is a recurrent architecture built on <a href="https://arxiv.org/abs/2303.06349" target="_blank" class="citation-link">Linear Recurrence Units (LRUs)</a>. It achieves competitive standard performance while excelling in zero-shot extrapolation to sequence lengths far beyond those seen during training. Inspired by Caduceus we enhanced Hawk with bi-directional processing.</li>
+                </ul>
+
+                <h3>Pretraining</h3>
+                <p>For our experiments, we train our own version of Caduceus and Hawk, but use a pretrained version of NTv2. We follow the data sourcing and preprocessing procedures outlined in established genomic language model protocols. Specifically, we made use of the multispecies genome used to pretrain NTv2 in the exact same setting, and pretrained our models on 300B nucleotides.</p>
+
+                <h3>Fine-Tuning on Long-Range Genomics Tasks</h3>
+                <p>Following pretraining, the models are fine-tuned on a suite of long-range genomics tasks from the <a href="https://huggingface.co/datasets/InstaDeepAI/genomics-long-range-benchmark" target="_blank" class="citation-link">Genomics Long-Range Benchmark (GLRB)</a>, which assess the ability to predict genomic features (e.g., regulatory elements, gene expression, chromatin marks) from long-context sequences.</p>
+                
+                <h3>Performance Results</h3>
+                <div class="table-responsive">
+                    <table class="table">
+                        <caption>Genomics Long-Range Benchmark results, using 12kbp per sequence. Caduceus achieves the best result in three out of six GLRB tasks.</caption>
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>NTv2</th>
+                                <th>Caduceus</th>
+                                <th>Hawk</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Bulk RNA (R²)</td>
+                                <td>0.52</td>
+                                <td class="highlight">0.53</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>VEP eQTL (AUROC)</td>
+                                <td class="highlight">0.72</td>
+                                <td>0.68</td>
+                                <td>0.60</td>
+                            </tr>
+                            <tr>
+                                <td>VEP ClinVar (AUROC)</td>
+                                <td class="highlight">0.75</td>
+                                <td class="highlight">0.75</td>
+                                <td>0.55</td>
+                            </tr>
+                            <tr>
+                                <td>Histone Marks (AUPRC)</td>
+                                <td>0.34</td>
+                                <td class="highlight">0.52</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>Promoters (AUPRC)</td>
+                                <td>0.75</td>
+                                <td class="highlight">0.77</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>Enhancers (AUROC)</td>
+                                <td class="highlight">0.78</td>
+                                <td>0.75</td>
+                                <td>-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3>Zero-shot Extrapolation</h3>
+                <p>We evaluate models' ability to generalize to significantly longer sequences in a scalable way, without requiring further fine-tuning. Specifically, we assess zero-shot extrapolation by testing on downstream tasks with input lengths up to 10× greater than those seen during pretraining.</p>
+                
+                <div class="figure">
+                    <img src="images/extrapolation_vep_comparison.png" alt="Comparison of extrapolation methods">
+                    <figcaption>Comparison of the extrapolation methods of state-space models and attention-based models on VEP eQTLs (AUROC). A dotted vertical line indicates the fine-tuning sequence length (12 kbp) of all models. Attention-based models collapse when processing sequences that are longer than what they have encountered at training time, whereas state-space models show an ability to generalize to sequences up to 10x longer.</figcaption>
+                </div>
+
+                <div class="figure">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <img src="images/bulk_rna_0_shot_extrap.png" alt="Bulk RNA extrapolation">
+                            <figcaption>Bulk RNA</figcaption>
+                        </div>
+                        <div class="col-md-4">
+                            <img src="images/VEP_eQTL_0_shot_extrap.png" alt="VEP eQTL extrapolation">
+                            <figcaption>VEP eQTL</figcaption>
+                        </div>
+                        <div class="col-md-4">
+                            <img src="images/VEP_ClinVar_0_shot_extrap.png" alt="VEP ClinVar extrapolation">
+                            <figcaption>VEP ClinVar</figcaption>
+                        </div>
+                    </div>
+                </div>
+
+                <h4>Processing Ultralong Sequences</h4>
+                <p>In this section, we demonstrate how hidden state transfer mechanism in <a href="https://arxiv.org/abs/2212.14052" target="_blank" class="citation-link">SSMs</a> can be used to process ultralong sequences of 1M+ tokens on a single GPU. As input sequences get longer, loading and processing it all at once requires a large amount of memory. If an input sequence exceeds the maximum length that a single GPU can handle, the sequence is divided into smaller chunks (for example 100 kbp segments). The final hidden state from each chunk is passed as the initial state for the next chunk, ensuring continuity and preservation of dependencies across the entire sequence.</p>
+                
+                <div class="figure">
+                    <img src="images/Hawk Extrapolation.png" alt="Hidden State Propagation Mechanism">
+                    <figcaption>A Mechanism for Hidden State Propagation in SSMs for Ultralong Sequences Visualized. An ultralong sequence is split into multiple chunks, thereby doing a linear scan over chunks. An individual chunk size could be set to any size that fits on a single GPU. The hidden state's size always stays fixed.</figcaption>
+                </div>
+
+                <div class="figure">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <img src="images/VEP_ClinVar_AUROC.png" alt="VEP ClinVar AUROC">
+                            <figcaption>Zero-shot extrapolation on VEP ClinVar with Hawk (50M parameters) up to 1 Mbp input length. Performance remains stable despite the substantial increase in context size.</figcaption>
+                        </div>
+                        <div class="col-md-6">
+                            <img src="images/eqtl_1m.png" alt="eQTL 1 million">
+                            <figcaption>Zero-shot extrapolation on VEP eQTL with Hawk (50M parameters) up to 1 Mbp input length. Performance remains stable despite the substantial increase in context size.</figcaption>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Conclusion -->
+        <section id="conclusion">
+            <div class="container">
+                <h2>Conclusion</h2>
+                <p>Our evaluation of State-Space Models (SSMs) for long-range genomic modeling demonstrates that these architectures learn high-quality representations that are both biologically meaningful and computationally scalable. Across multiple downstream tasks, SSMs not only match transformer performance but also excel in zero-shot extrapolation—extending from a 12 kbp training context to sequences up to 120 kbp and even 1 Mbp without additional fine-tuning. This behavior aligns with our goal of capturing the genome's hierarchical regulation, preserving both fine-grained nucleotide details and long-range regulatory interactions.</p>
+
+                <p>The results presented in this work highlight the potential of SSM-based architectures as scalable alternatives for comprehensive genomic analysis. The demonstrated ability to process ultralong sequences on a single GPU not only makes these models practical for large-scale studies but also opens the door for integrated analyses of entire genomic regions in one pass.</p>
+            </div>
+        </section>
+        
+        <!-- BibTeX -->
+        <section id="bibtex">
+            <div class="container">
+                <h2>BibTeX</h2>
+                <pre class="bibtex">@article{popov2024leveraging,
+  title={Leveraging State Space Models in Long Range Genomics},
+  author={Popov, Matvei and Kallala, Aymen and Ramesh, Anirudha and Hennouni, Narimane and Khaitan, Shivesh and Gentry, Rick and Cohen, Alain-Sam},
+  journal={ICLR 2025 Workshop},
+  year={2025}
+}</pre>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container">
+                <p>© 2025 <a href="https://instadeep.com/" target="_blank">InstaDeep</a>. All rights reserved.</p>
+                <!-- <p>This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a>.</p> -->
+            </div>
+        </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
