@@ -43,10 +43,13 @@
                 
                 <div class="links">
                     <a href="https://arxiv.org/abs/2504.06304" class="btn" target="_blank">
-                        <i class="ai ai-arxiv"></i> arXiv
+                        <i class="ai ai-arxiv" style="color: #B31B1B;"></i> arXiv
                     </a>
                     <a href="LMRL_Poster_Vetical.pdf" class="btn" target="_blank">
-                        <i class="fa-solid fa-image"></i> Poster
+                        <i class="fa-solid fa-image" style="color: #00A4EF;"></i> Poster
+                    </a>
+                    <a href="Leveraging State Space Models for Long Range Genomics.pdf" class="btn" target="_blank">
+                        <i class="fa-brands fa-google-drive" style="color: #00AC47;"></i> Slides
                     </a>
                     <!-- <a href="#" class="btn">
                         <i class="fa-brands fa-github"></i> GitHub
@@ -60,6 +63,11 @@
             <div class="container">
                 <h2>Abstract</h2>
                 <p>Long-range dependencies are critical for understanding genomic structure and function, yet most conventional methods struggle with them. Widely adopted transformer-based models, while excelling at short-context tasks, are limited by the attention module's quadratic computational complexity and inability to extrapolate to sequences longer than those seen in training. In this work, we explore <a href="https://github.com/state-spaces/mamba" target="_blank" class="citation-link">State-Space Models (SSMs)</a> as a promising alternative by benchmarking two SSM inspired architectures, <a href="https://caduceus-dna.github.io" target="_blank" class="citation-link">Caduceus</a> and <a href="https://arxiv.org/abs/2402.19427" target="_blank" class="citation-link">Hawk</a>, on long-range genomics modeling tasks under conditions parallel to a 50M-parameter transformer baseline. We discover that SSMs match transformer performance and exhibit impressive zero-shot extrapolation across multiple tasks, handling contexts 10–100× longer than those seen during training, indicating more generalizable representations better suited for modeling the long and complex human genome. Moreover, we demonstrate that these models can efficiently process sequences of 1M tokens on a single GPU, allowing for modeling entire genomic regions at once, even in labs with limited compute. Our findings establish SSMs as efficient and scalable for long-context genomic analysis.</p>
+                
+                <div class="figure">
+                    <img src="graphic.png" alt="Overview of State Space Models in Genomics" style="width: 75%; max-width: 1000px; margin: 20px auto; display: block;">
+                    <figcaption>Could SSMs be the next generation of state-of-the-art genomic models that would allow us to model the entire human genome?</figcaption>
+                </div>
             </div>
         </section>
         
