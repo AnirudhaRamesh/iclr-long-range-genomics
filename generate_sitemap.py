@@ -3,6 +3,7 @@ import glob
 from datetime import datetime
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
+from urllib.parse import quote
 
 def debug_print(message):
     print(f"DEBUG: {message}")
@@ -48,9 +49,11 @@ def generate_sitemap():
                     # Determine priority
                     priority = '0.8' if file_path.endswith('.pdf') else '0.6'
                     
-                    # Add URL to sitemap
+                    # Add URL to sitemap with proper URL encoding
                     url = ET.SubElement(urlset, 'url')
-                    file_url = f"{BASE_URL}/{rel_path}"
+                    # Properly encode the URL, replacing spaces with %20
+                    encoded_path = quote(rel_path)
+                    file_url = f"{BASE_URL}/{encoded_path}"
                     ET.SubElement(url, 'loc').text = file_url
                     ET.SubElement(url, 'priority').text = priority
                     ET.SubElement(url, 'lastmod').text = datetime.now().strftime('%Y-%m-%d')
