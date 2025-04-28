@@ -28,8 +28,7 @@ def generate_sitemap():
         urlset.set('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9')
         
         # Get current date in YYYY-MM-DD format
-        # Use a date slightly in the past to avoid any future date issues
-        today = "2024-04-20"  # hardcoded safe date
+        today = datetime.now().strftime('%Y-%m-%d')
         debug_print(f"Using date: {today}")
         
         # Add index page first
