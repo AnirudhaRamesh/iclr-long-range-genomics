@@ -10,6 +10,8 @@ on:
 jobs:
   generate-sitemap:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
       
@@ -17,21 +19,14 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-          
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install beautifulsoup4 requests
-
+      
       - name: Generate Sitemap
-        run: python .github/scripts/generate_sitemap.py
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python generate_sitemap.py
           
       - name: Commit and Push Sitemap
         run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
+          git config --global user.name 'GitHub Actions Bot'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add sitemap.xml
-          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-generate sitemap"
-          git push 
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-generate sitemap" && git push) 
