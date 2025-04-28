@@ -9,13 +9,17 @@ def debug_print(message):
     print(f"DEBUG: {message}")
 
 def clean_xml_output(xml_str):
-    # Remove extra newlines within tags
+    # Remove extra newlines and spaces
     import re
-    xml_str = re.sub(r'>\n\s*([^<>\n\s])', r'>\1', xml_str)
-    xml_str = re.sub(r'([^<>\n\s])\n\s*<', r'\1<', xml_str)
-    # Replace XML declaration
+    # Replace multiple newlines with single newline
+    xml_str = re.sub(r'\n\s*\n', '\n', xml_str)
+    # Remove newlines and extra spaces between tags
+    xml_str = re.sub(r'>\s*<', '><', xml_str)
+    # Add newlines after closing tags for readability
+    xml_str = re.sub(r'(<\/[^>]+>)([^<])', r'\1\n\2', xml_str)
+    # Ensure proper XML declaration
     xml_str = '<?xml version="1.0" encoding="UTF-8"?>\n' + xml_str[xml_str.find('<urlset'):]
-    return xml_str
+    return xml_str.strip()
 
 def generate_sitemap():
     try:
@@ -68,9 +72,12 @@ def generate_sitemap():
                     # Properly encode the URL, replacing spaces with %20
                     encoded_path = quote(rel_path)
                     file_url = f"{BASE_URL}/{encoded_path}"
-                    ET.SubElement(url, 'loc').text = file_url
-                    ET.SubElement(url, 'priority').text = priority
-                    ET.SubElement(url, 'lastmod').text = today
+                    loc = ET.SubElement(url, 'loc')
+                    loc.text = file_url
+                    pri = ET.SubElement(url, 'priority')
+                    pri.text = priority
+                    mod = ET.SubElement(url, 'lastmod')
+                    mod.text = today
                     
                     debug_print(f"Added URL: {file_url}")
                     
