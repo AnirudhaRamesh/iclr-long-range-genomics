@@ -8,6 +8,15 @@ from urllib.parse import quote
 def debug_print(message):
     print(f"DEBUG: {message}")
 
+def clean_xml_output(xml_str):
+    # Remove extra newlines within tags
+    import re
+    xml_str = re.sub(r'>\n\s*([^<>\n\s])', r'>\1', xml_str)
+    xml_str = re.sub(r'([^<>\n\s])\n\s*<', r'\1<', xml_str)
+    # Replace XML declaration
+    xml_str = '<?xml version="1.0" encoding="UTF-8"?>\n' + xml_str[xml_str.find('<urlset'):]
+    return xml_str
+
 def generate_sitemap():
     try:
         # Get the current directory (where the script is run from)
@@ -17,15 +26,20 @@ def generate_sitemap():
         # Base URL for the website
         BASE_URL = "https://anirudharamesh.github.io/iclr-long-range-genomics"
         
-        # Create root element
+        # Create root element with proper namespace
         urlset = ET.Element('urlset')
         urlset.set('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9')
+        urlset.set('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
+        urlset.set('xsi:schemaLocation', 'http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd')
+        
+        # Get current date in YYYY-MM-DD format
+        today = datetime.now().strftime('%Y-%m-%d')
         
         # Add index page first
         index_url = ET.SubElement(urlset, 'url')
         ET.SubElement(index_url, 'loc').text = BASE_URL + '/'
         ET.SubElement(index_url, 'priority').text = '1.0'
-        ET.SubElement(index_url, 'lastmod').text = datetime.now().strftime('%Y-%m-%d')
+        ET.SubElement(index_url, 'lastmod').text = today
         
         # Find all HTML and PDF files
         file_patterns = ['*.html', '*.pdf']
@@ -56,7 +70,7 @@ def generate_sitemap():
                     file_url = f"{BASE_URL}/{encoded_path}"
                     ET.SubElement(url, 'loc').text = file_url
                     ET.SubElement(url, 'priority').text = priority
-                    ET.SubElement(url, 'lastmod').text = datetime.now().strftime('%Y-%m-%d')
+                    ET.SubElement(url, 'lastmod').text = today
                     
                     debug_print(f"Added URL: {file_url}")
                     
@@ -65,10 +79,12 @@ def generate_sitemap():
         
         # Create the XML string with proper formatting
         xml_str = minidom.parseString(ET.tostring(urlset)).toprettyxml(indent="  ")
+        # Clean up the formatting
+        xml_str = clean_xml_output(xml_str)
         
         # Write to sitemap.xml
         sitemap_path = os.path.join(current_dir, 'sitemap.xml')
-        with open(sitemap_path, 'w') as f:
+        with open(sitemap_path, 'w', encoding='utf-8') as f:
             f.write(xml_str)
         
         debug_print(f"Sitemap written to: {sitemap_path}")
