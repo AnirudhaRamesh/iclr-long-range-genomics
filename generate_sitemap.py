@@ -2,24 +2,17 @@ import os
 import glob
 from datetime import datetime
 import xml.etree.ElementTree as ET
-from xml.dom import minidom
+import xml.dom.minidom
 from urllib.parse import quote
 
 def debug_print(message):
     print(f"DEBUG: {message}")
 
-def clean_xml_output(xml_str):
-    # Remove extra newlines and spaces
-    import re
-    # Replace multiple newlines with single newline
-    xml_str = re.sub(r'\n\s*\n', '\n', xml_str)
-    # Remove newlines and extra spaces between tags
-    xml_str = re.sub(r'>\s*<', '><', xml_str)
-    # Add newlines after closing tags for readability
-    xml_str = re.sub(r'(<\/[^>]+>)([^<])', r'\1\n\2', xml_str)
-    # Ensure proper XML declaration
-    xml_str = '<?xml version="1.0" encoding="UTF-8"?>\n' + xml_str[xml_str.find('<urlset'):]
-    return xml_str.strip()
+def prettify_xml(elem):
+    """Return a pretty-formatted XML string for the Element."""
+    rough_string = ET.tostring(elem, 'utf-8')
+    reparsed = xml.dom.minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
 
 def generate_sitemap():
     try:
@@ -33,17 +26,25 @@ def generate_sitemap():
         # Create root element with proper namespace
         urlset = ET.Element('urlset')
         urlset.set('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9')
-        urlset.set('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
-        urlset.set('xsi:schemaLocation', 'http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd')
         
         # Get current date in YYYY-MM-DD format
-        today = datetime.now().strftime('%Y-%m-%d')
+        # Use a date slightly in the past to avoid any future date issues
+        today = "2024-04-20"  # hardcoded safe date
+        debug_print(f"Using date: {today}")
         
         # Add index page first
         index_url = ET.SubElement(urlset, 'url')
-        ET.SubElement(index_url, 'loc').text = BASE_URL + '/'
-        ET.SubElement(index_url, 'priority').text = '1.0'
-        ET.SubElement(index_url, 'lastmod').text = today
+        loc = ET.SubElement(index_url, 'loc')
+        loc.text = BASE_URL + '/'
+        
+        lastmod = ET.SubElement(index_url, 'lastmod')
+        lastmod.text = today
+        
+        changefreq = ET.SubElement(index_url, 'changefreq')
+        changefreq.text = 'monthly'
+        
+        priority = ET.SubElement(index_url, 'priority')
+        priority.text = '1.0'
         
         # Find all HTML and PDF files
         file_patterns = ['*.html', '*.pdf']
@@ -64,30 +65,39 @@ def generate_sitemap():
                     if any(part.startswith('.') for part in rel_path.split(os.sep)):
                         continue
                     
-                    # Determine priority
-                    priority = '0.8' if file_path.endswith('.pdf') else '0.6'
-                    
                     # Add URL to sitemap with proper URL encoding
                     url = ET.SubElement(urlset, 'url')
+                    
                     # Properly encode the URL, replacing spaces with %20
                     encoded_path = quote(rel_path)
                     file_url = f"{BASE_URL}/{encoded_path}"
+                    
                     loc = ET.SubElement(url, 'loc')
                     loc.text = file_url
-                    pri = ET.SubElement(url, 'priority')
-                    pri.text = priority
-                    mod = ET.SubElement(url, 'lastmod')
-                    mod.text = today
+                    
+                    lastmod = ET.SubElement(url, 'lastmod')
+                    lastmod.text = today
+                    
+                    changefreq = ET.SubElement(url, 'changefreq')
+                    changefreq.text = 'monthly'
+                    
+                    priority = ET.SubElement(url, 'priority')
+                    priority.text = '0.8' if file_path.endswith('.pdf') else '0.6'
                     
                     debug_print(f"Added URL: {file_url}")
                     
                 except Exception as e:
                     debug_print(f"Error processing file {file_path}: {str(e)}")
         
-        # Create the XML string with proper formatting
-        xml_str = minidom.parseString(ET.tostring(urlset)).toprettyxml(indent="  ")
-        # Clean up the formatting
-        xml_str = clean_xml_output(xml_str)
+        # Create XML with proper format
+        xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        xml_body = prettify_xml(urlset)
+        
+        # Remove the XML declaration from prettify_xml as we're adding our own
+        if xml_body.startswith('<?xml'):
+            xml_body = xml_body[xml_body.find('?>')+2:]
+        
+        xml_str = xml_declaration + xml_body
         
         # Write to sitemap.xml
         sitemap_path = os.path.join(current_dir, 'sitemap.xml')
