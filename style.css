@@ -384,3 +384,32 @@ footer a:hover {
         margin-bottom: 2rem;
     }
 }
+
+/* Video container for embedded videos */
+.video-container {
+    position: relative;
+    padding-bottom: 0; /* We're using fixed height instead */
+    margin-bottom: 2rem;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.video-container iframe {
+    display: block;
+    border: none;
+}
+
+.spotlight-highlight {
+    background-color: #fff5e6;
+    border-left: 4px solid #ff9900;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.spotlight-highlight strong {
+    color: #e67700;
+}
